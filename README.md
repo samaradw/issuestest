@@ -13,49 +13,41 @@ _Level up your project workflow with labels, templates, milestones, and issue-po
 
 </header>
 
-## Step 3: Creating and Assigning a Milestone
+## Step 4: Open a Pull Request
 
-Now that your issue is labeled, it’s time to **track progress over time** using milestones!
+Great job making changes on your own branch! Now it’s time to submit your work by opening a pull request.
 
-### 📅 What is a Milestone?
-
-A **milestone** groups issues and pull requests into a larger goal or release. It’s useful for planning sprints, managing versions, and tracking deadlines across multiple tasks.
-
-For example, you might create a milestone called `v1.0 Launch` and assign all relevant issues to it.
+Pull requests let you propose changes, get feedback, and merge updates into the main project. They are an essential part of collaborative development.
 
 ---
 
-### :keyboard: Task: Create and Assign a Milestone
+### ✅ Task: Open a Pull Request
 
-#### ✅ Step 1: Create a Milestone
-1. In your repository, click the **Issues** tab.
-2. Click the **Milestones** tab (next to Labels).
-3. Click **New milestone**.
-4. Fill in:
-   - **Title**: Give it a name (e.g., `v1.0` or `Week 1 Goals`)
-   - **Description** *(optional)*: Briefly describe the goal of the milestone.
-   - **Due date** *(optional)*: Select a deadline if applicable.
-5. Click **Create milestone**.
+Let’s create a pull request from the branch you’ve been working on (`update-game`):
 
-#### 📌 Step 2: Assign the Milestone to Your Issue
-1. Go back to your previously created issue.
-2. On the right sidebar, click the **Milestone** dropdown.
-3. Select the milestone you just created.
+#### 🧭 Step 1: Navigate to the "Pull Requests" Tab
+1. Click the **"Pull requests"** tab at the top of the repository.
+2. Click the green **"New pull request"** button.
 
-#### 📌 Step 3: Comment "finished" on the issue
+#### 🔀 Step 2: Select the Correct Branches
+1. For the **base** branch, select `main`.
+2. For the **compare** branch, select `update-game`.
 
----
+> 💡 The pull request must come from the `update-game` branch for this step to progress.
 
-### 💡 Why Milestones Matter
+#### 📝 Step 3: Create the PR
+1. Click **Create pull request**.
+2. Give your PR a brief title and description (or leave the default).
+3. Click **Create pull request** again to submit.
 
-Milestones help you:
-- Track progress toward larger goals
-- Manage multiple issues within a sprint or project phase
-- View completion rates for a set of issues
-
-Milestones keep teams aligned and projects on schedule 🚀
+🎉 You’ve just opened your first pull request!
 
 ---
+
+### ✅ [Finished](#)
+
+If everything worked, the next step will load automatically.  
+If not, make sure your pull request was opened from the `update-game` branch and that you're currently on **Step 4**.
 
 <footer>
 
