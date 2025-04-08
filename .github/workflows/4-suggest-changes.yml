@@ -1,4 +1,4 @@
-name: Step 4, Open a pull request
+name: Step 4, Open a Pull Request
 
 # This step listens for the learner to open a pull request with branch `update-game`.
 # This workflow updates from step 4 to step 5.
@@ -27,7 +27,7 @@ jobs:
       current_step: ${{ steps.get_step.outputs.current_step }}
 
   on_open_a_pull_request:
-    name: On open a pull request
+    name: On Open a Pull Request
     needs: get_current_step
 
     # Run only if:
@@ -50,7 +50,28 @@ jobs:
           fetch-depth: 0
           ref: update-game
 
-      - name: Update to step 5
+      - name: Update to Step 5
+        uses: skills/action-update-step@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          from_step: 4
+          to_step: 5
+          branch_name: update-game
+
+  # New trigger to check if the pull request is merged
+  on_pr_merged:
+    name: Trigger when Pull Request is Merged
+    needs: on_open_a_pull_request
+    if: >
+      ${{ github.event.pull_request.merged == true }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Update to Step 5
         uses: skills/action-update-step@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
