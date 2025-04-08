@@ -6,12 +6,14 @@ on:
   workflow_dispatch:
   pull_request:
     types:
-      - opened
-      - synchronize  # Added to detect when conflicts are resolved
+      - opened      # Trigger when PR is opened
+      - reopened    # Trigger when PR is reopened
+      - ready_for_review  # Trigger when PR is marked ready for review
+      - submitted   # Trigger when PR is submitted/reviewed
 
 permissions:
   contents: write
-  pull-requests: write  # Added permission to comment on PRs
+  pull-requests: write
 
 jobs:
   get_current_step:
@@ -26,106 +28,61 @@ jobs:
     outputs:
       current_step: ${{ steps.get_step.outputs.current_step }}
 
-  on_open_a_pull_request:
-    name: On Open a Pull Request
+  update_to_step_5:
+    name: Update to Step 5 when PR is opened or submitted
     needs: get_current_step
     # Run only if:
     # 1. Not a template repo
     # 2. Learner is on step 4
-    # 3. PR is from `update-game` branch
-    if: >-
-      ${{ 
-        !github.event.repository.is_template &&
-        needs.get_current_step.outputs.current_step == 4 &&
-        github.head_ref == 'update-game'
-      }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: main  # Changed to main to properly check conflicts
-
-      - name: Check for conflicts
-        id: check_conflicts
-        run: |
-          git fetch origin update-game
-          CONFLICTS=$(git merge-tree $(git merge-base FETCH_HEAD HEAD) FETCH_HEAD HEAD | grep -c "^+<<<<<<< ")
-          echo "has_conflicts=$CONFLICTS" >> $GITHUB_OUTPUT
-          
-      - name: Comment on PR if conflicts exist
-        if: steps.check_conflicts.outputs.has_conflicts != '0'
-        uses: actions/github-script@v6
-        with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
-          script: |
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: '👋 I noticed there are merge conflicts in this pull request. Please resolve them using the web editor or command line before continuing to the next step. Click the "Resolve conflicts" button to get started.'
-            })
-
-      - name: Update to Step 5 if no conflicts
-        if: steps.check_conflicts.outputs.has_conflicts == '0'
-        uses: skills/action-update-step@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          from_step: 4
-          to_step: 5
-          branch_name: update-game
-  
-  on_pr_synchronized:
-    name: Check PR after synchronization
-    needs: get_current_step
+    # 3. PR is from `update-game` branch to `main` branch
     if: >-
       ${{ 
         !github.event.repository.is_template &&
         needs.get_current_step.outputs.current_step == 4 &&
         github.head_ref == 'update-game' &&
-        github.event.action == 'synchronize'
+        github.base_ref == 'main'
       }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout update-game branch
         uses: actions/checkout@v4
         with:
+          ref: update-game
           fetch-depth: 0
 
-      - name: Check if conflicts are resolved
-        id: check_resolved
+      - name: Update step number file
+        run: echo "5" > ./.github/steps/-step.txt
+
+      - name: Commit and push updated step file
         run: |
-          git fetch origin update-game
-          CONFLICTS=$(git merge-tree $(git merge-base FETCH_HEAD HEAD) FETCH_HEAD HEAD | grep -c "^+<<<<<<< ")
-          echo "has_conflicts=$CONFLICTS" >> $GITHUB_OUTPUT
-          
-      - name: Update to Step 5 if conflicts resolved
-        if: steps.check_resolved.outputs.has_conflicts == '0'
-        uses: skills/action-update-step@v2
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add ./.github/steps/-step.txt
+          git commit -m "Update to step 5"
+          git push
+
+      # Notify the PR with a comment
+      - name: Add success comment to PR
+        uses: actions/github-script@v6
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          from_step: 4
-          to_step: 5
-          branch_name: update-game
-          
-  on_pr_merged:
-    name: Trigger when Pull Request is Merged
-    needs: get_current_step
-    if: >-
-      ${{ 
-        github.event.pull_request.merged == true &&
-        needs.get_current_step.outputs.current_step == 4 &&
-        github.head_ref == 'update-game'
-      }}
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Update to Step 5
-        uses: skills/action-update-step@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          from_step: 4
-          to_step: 5
-          branch_name: main  # Changed to main since it's after merge
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const eventType = context.eventName === 'pull_request' ? context.payload.action : 'other';
+            let message = '';
+            
+            if (eventType === 'opened' || eventType === 'reopened') {
+              message = '🎉 Great job opening a pull request! You have completed Step 4 and can now move on to Step 5: Link and Merge the Pull Request.';
+            } else if (eventType === 'submitted') {
+              message = '🎉 Great job submitting your pull request! You have completed Step 4 and can now move on to Step 5: Link and Merge the Pull Request.';
+            } else {
+              message = '🎉 You have completed Step 4 and can now move on to Step 5: Link and Merge the Pull Request.';
+            }
+            
+            message += '\n\nIn Step 5, you will learn how to link this PR to an issue and then merge it into the main branch.';
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: message
+            });
