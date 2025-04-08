@@ -1,0 +1,61 @@
+name: Step 4, Open a pull request
+
+# This step listens for the learner to open a pull request with branch `update-game`.
+# This workflow updates from step 4 to step 5.
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types:
+      - opened
+
+permissions:
+  contents: write
+
+jobs:
+  get_current_step:
+    name: Check current step number
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - id: get_step
+        run: |
+          echo "current_step=$(cat ./.github/steps/-step.txt)" >> $GITHUB_OUTPUT
+    outputs:
+      current_step: ${{ steps.get_step.outputs.current_step }}
+
+  on_open_a_pull_request:
+    name: On open a pull request
+    needs: get_current_step
+
+    # Run only if:
+    # 1. Not a template repo
+    # 2. Learner is on step 4
+    # 3. PR is from `update-game` branch
+    if: >-
+      ${{ 
+        !github.event.repository.is_template &&
+        needs.get_current_step.outputs.current_step == 4 &&
+        github.head_ref == 'update-game'
+      }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: update-game
+
+      - name: Update to step 5
+        uses: skills/action-update-step@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          from_step: 4
+          to_step: 5
+          branch_name: update-game
+
+
