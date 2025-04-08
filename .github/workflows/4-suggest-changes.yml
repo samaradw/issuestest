@@ -2,15 +2,16 @@ name: Step 4, Open a Pull Request
 
 # This step listens for the learner to open a pull request with branch `update-game`.
 # This workflow updates from step 4 to step 5.
-
 on:
   workflow_dispatch:
   pull_request:
     types:
       - opened
+      - synchronize  # Added to detect when conflicts are resolved
 
 permissions:
   contents: write
+  pull-requests: write  # Added permission to comment on PRs
 
 jobs:
   get_current_step:
@@ -19,7 +20,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
       - id: get_step
         run: |
           echo "current_step=$(cat ./.github/steps/-step.txt)" >> $GITHUB_OUTPUT
@@ -29,7 +29,6 @@ jobs:
   on_open_a_pull_request:
     name: On Open a Pull Request
     needs: get_current_step
-
     # Run only if:
     # 1. Not a template repo
     # 2. Learner is on step 4
@@ -40,43 +39,93 @@ jobs:
         needs.get_current_step.outputs.current_step == 4 &&
         github.head_ref == 'update-game'
       }}
-
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: update-game
+          ref: main  # Changed to main to properly check conflicts
 
-      - name: Update to Step 5
+      - name: Check for conflicts
+        id: check_conflicts
+        run: |
+          git fetch origin update-game
+          CONFLICTS=$(git merge-tree $(git merge-base FETCH_HEAD HEAD) FETCH_HEAD HEAD | grep -c "^+<<<<<<< ")
+          echo "has_conflicts=$CONFLICTS" >> $GITHUB_OUTPUT
+          
+      - name: Comment on PR if conflicts exist
+        if: steps.check_conflicts.outputs.has_conflicts != '0'
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '👋 I noticed there are merge conflicts in this pull request. Please resolve them using the web editor or command line before continuing to the next step. Click the "Resolve conflicts" button to get started.'
+            })
+
+      - name: Update to Step 5 if no conflicts
+        if: steps.check_conflicts.outputs.has_conflicts == '0'
         uses: skills/action-update-step@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           from_step: 4
           to_step: 5
           branch_name: update-game
-
-  # New trigger to check if the pull request is merged
-  on_pr_merged:
-    name: Trigger when Pull Request is Merged
-    needs: on_open_a_pull_request
-    if: >
-      ${{ github.event.pull_request.merged == true }}
-
+  
+  on_pr_synchronized:
+    name: Check PR after synchronization
+    needs: get_current_step
+    if: >-
+      ${{ 
+        !github.event.repository.is_template &&
+        needs.get_current_step.outputs.current_step == 4 &&
+        github.head_ref == 'update-game' &&
+        github.event.action == 'synchronize'
+      }}
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Update to Step 5
+      - name: Check if conflicts are resolved
+        id: check_resolved
+        run: |
+          git fetch origin update-game
+          CONFLICTS=$(git merge-tree $(git merge-base FETCH_HEAD HEAD) FETCH_HEAD HEAD | grep -c "^+<<<<<<< ")
+          echo "has_conflicts=$CONFLICTS" >> $GITHUB_OUTPUT
+          
+      - name: Update to Step 5 if conflicts resolved
+        if: steps.check_resolved.outputs.has_conflicts == '0'
         uses: skills/action-update-step@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           from_step: 4
           to_step: 5
           branch_name: update-game
-
-
+          
+  on_pr_merged:
+    name: Trigger when Pull Request is Merged
+    needs: get_current_step
+    if: >-
+      ${{ 
+        github.event.pull_request.merged == true &&
+        needs.get_current_step.outputs.current_step == 4 &&
+        github.head_ref == 'update-game'
+      }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Update to Step 5
+        uses: skills/action-update-step@v2
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          from_step: 4
+          to_step: 5
+          branch_name: main  # Changed to main since it's after merge
