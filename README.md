@@ -13,41 +13,26 @@ _Level up your project workflow with labels, templates, milestones, and issue-po
 
 </header>
 
-<!--
-  <<< Author notes: Course start >>>
-  Include start button, a note about Actions minutes,
-  and tell the learner why they should take the course.
--->
+## Step 1: Creating an Issue
 
-## Welcome
+Before diving into labels, templates, and milestones, here’s a quick reminder of what a GitHub Issue is.
 
-GitHub Issues are more than just task trackers—they’re powerful tools to plan, manage, and collaborate with your team. This course will guide you beyond the basics and into practical strategies to enhance your team’s productivity using Issues.
+### 📝 What’s an Issue?
 
-- **Who is this for**: Developers, designers, project managers—anyone who collaborates on GitHub projects.
-- **What you'll learn**: How to organize and streamline work using labels, milestones, templates, and cross-references.
-- **What you'll build**: A real issue workflow using labels, templates, and auto-closing pull requests.
-- **Prerequisites**: Introduction to Issues GitHub Skill
-- **How long**: 15–20 minutes
-
-### In this course, you’ll learn how to:
-1. Add and remove labels from issues
-2. Use issue templates for consistency
-3. Link issues and pull requests for automatic closures
-4. Cross-reference issues and PRs for better context
-5. Understand GitHub Actions triggers behind these interactions
+An **Issue** is a way to track work, ask questions, report bugs, or suggest ideas. It keeps discussions and tasks organized in one place and helps your team collaborate more effectively.
 
 ---
 
-### 🚀 How to start this course
+### :keyboard: Task: Create a New Issue
 
-[![start-course](https://user-images.githubusercontent.com/1221423/235727646-4a590299-ffe5-480d-8cd5-8194ea184546.svg)](https://github.com/new?template_owner=bryceshen1&template_name=base&owner=%40me&name=bryceshen1-base&description=My+clone+repository&visibility=public)
+1. Go to the **Issues** tab of your repository.
+2. Click **New issue**.
+3. Write a clear **title** and a short **description** of what the issue is about.
+4. Submit the issue.
 
-1. Right-click **Start course** and open the link in a new tab.
-2. Fill out the form to create your own copy of the course repository.
-   - For owner, choose your personal account or organization.
-   - Public repositories are recommended, as private ones will [consume GitHub Actions minutes](https://docs.github.com/en/billing/managing-billing-for-github-actions/about-billing-for-github-actions).
-3. Click **Create repository** and wait about 20 seconds.
-4. Refresh the page and follow the instructions in your new repository.
+That’s it! You’re ready to build a better workflow around it in the next steps. 🚀
+
+---
 
 <footer>
 
@@ -63,4 +48,3 @@ Get help: [Post in our discussion board](https://github.com/orgs/skills/discussi
 &copy; 2025 GitHub &bull; [Code of Conduct](https://www.contributor-covenant.org/version/2/1/code_of_conduct/code_of_conduct.md) &bull; [MIT License](https://gh.io/mit)
 
 </footer>
-
