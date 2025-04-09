@@ -1,15 +1,13 @@
 name: Step 4, Open a Pull Request
 
-# This step listens for the learner to open a pull request with branch `update-game`.
-# This workflow updates from step 4 to step 5.
 on:
   workflow_dispatch:
   pull_request:
     types:
-      - opened      # Trigger when PR is opened
-      - reopened    # Trigger when PR is reopened
-      - ready_for_review  # Trigger when PR is marked ready for review
-      - submitted   # Trigger when PR is submitted/reviewed
+      - opened
+      - reopened
+      - ready_for_review
+      - synchronize  # use this instead of 'submitted'
 
 permissions:
   contents: write
@@ -31,16 +29,12 @@ jobs:
   update_to_step_5:
     name: Update to Step 5 when PR is opened or submitted
     needs: get_current_step
-    # Run only if:
-    # 1. Not a template repo
-    # 2. Learner is on step 4
-    # 3. PR is from `update-game` branch to `main` branch
     if: >-
       ${{ 
         !github.event.repository.is_template &&
-        needs.get_current_step.outputs.current_step == 4 &&
-        github.head_ref == 'update-game' &&
-        github.base_ref == 'main'
+        needs.get_current_step.outputs.current_step == '4' &&
+        github.event.pull_request.head.ref == 'update-game' &&
+        github.event.pull_request.base.ref == 'main'
       }}
     runs-on: ubuntu-latest
     steps:
@@ -61,25 +55,22 @@ jobs:
           git commit -m "Update to step 5"
           git push
 
-      # Notify the PR with a comment
       - name: Add success comment to PR
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const eventType = context.eventName === 'pull_request' ? context.payload.action : 'other';
+            const eventType = context.payload.action;
             let message = '';
-            
+
             if (eventType === 'opened' || eventType === 'reopened') {
               message = '🎉 Great job opening a pull request! You have completed Step 4 and can now move on to Step 5: Link and Merge the Pull Request.';
-            } else if (eventType === 'submitted') {
-              message = '🎉 Great job submitting your pull request! You have completed Step 4 and can now move on to Step 5: Link and Merge the Pull Request.';
             } else {
               message = '🎉 You have completed Step 4 and can now move on to Step 5: Link and Merge the Pull Request.';
             }
-            
+
             message += '\n\nIn Step 5, you will learn how to link this PR to an issue and then merge it into the main branch.';
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
